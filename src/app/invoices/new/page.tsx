@@ -1,23 +1,40 @@
-import { sql } from "drizzle-orm";
-import { db } from "@/db";
+"use client";
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-const NewInvoice = async () => {
-  const results = await db.execute(sql`SELECT current_database()`);
-  console.log(results);
+import { createAction } from "@/app/actions";
+
+import { SyntheticEvent, useState } from "react";
+
+import { LoaderCircle } from "lucide-react";
+
+const NewInvoice = () => {
+  const [status, setstatus] = useState("ready");
+
+  const handleOnSubmit = async (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (status === "pending") return;
+    setstatus("pending");
+
+    const target = e.target as HTMLFormElement;
+    const formData = new FormData(target);
+    await createAction(formData);
+  };
+
   return (
     <main className="flex flex-col justify-center h-full  max-w-5xl mx-auto gap-6 my-12">
       <div className="flex justify-between">
         <h1 className="text-3xl font-semibold">Create Invoice</h1>
       </div>
 
-      {JSON.stringify(results)}
-
-      <form className="flex flex-col gap-4 max-w-xs">
+      <form
+        action={createAction}
+        onSubmit={handleOnSubmit}
+        className="flex flex-col gap-4 max-w-xs"
+      >
         <div>
           <Label htmlFor="name" className="block mb-2 font-semibold text-sm">
             Billing Name
@@ -34,7 +51,7 @@ const NewInvoice = async () => {
           <Label htmlFor="value" className="block mb-2 font-semibold text-sm">
             Value
           </Label>
-          <Input id="value" name="value" type="number" />
+          <Input id="value" name="value" type="text" />
         </div>
         <div>
           <Label
@@ -46,7 +63,13 @@ const NewInvoice = async () => {
           <Textarea id="description" name="description" />
         </div>
         <div>
-          <Button className="w-full font-semibold">Submit</Button>
+          {status === "pending" ? (
+            <Button className="w-full font-semibold disabled:cursor-not-allowed bg-gray-300">
+              <LoaderCircle className="animate-spin" />
+            </Button>
+          ) : (
+            <Button className="w-full font-semibold">Submit</Button>
+          )}
         </div>
       </form>
     </main>
