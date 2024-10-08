@@ -1,3 +1,6 @@
+import { db } from "@/db";
+import { Invoices } from "@/db/schema";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +16,8 @@ import {
 import { CirclePlus } from "lucide-react";
 import Link from "next/link";
 
-const Dashboard = () => {
+const Dashboard = async () => {
+  const results = await db.select().from(Invoices);
   return (
     <main className="flex flex-col justify-center h-full text-center max-w-5xl mx-auto gap-6 my-12">
       <div className="flex justify-between">
@@ -38,23 +42,46 @@ const Dashboard = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell className="font-medium text-left p-4">
-              <span className="font-semibold">10/31/2024</span>
-            </TableCell>
-            <TableCell className="text-left p-4">
-              <span className="font-semibold">Mohammad Rafey</span>
-            </TableCell>
-            <TableCell className="text-left p-4">
-              <span>mrafey10@gmail.com</span>
-            </TableCell>
-            <TableCell className="text-center p-4">
-              <Badge className="rounded-full">Paid</Badge>
-            </TableCell>
-            <TableCell className="text-right p-4">
-              <span className="font-semibold">$259.99</span>
-            </TableCell>
-          </TableRow>
+          {results.map((result) => {
+            return (
+              <TableRow key={result.id}>
+                <TableCell className="font-medium text-left p-0">
+                  <Link
+                    href={`/invoices/${result.id}`}
+                    className="font-semibold p-4 block"
+                  >
+                    {new Date(result.createTs).toLocaleDateString("en-US")}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-left p-0">
+                  <Link
+                    href={`/invoices/${result.id}`}
+                    className="font-semibold p-4 block"
+                  >
+                    Mohammad Rafey
+                  </Link>
+                </TableCell>
+                <TableCell className="text-left p-0">
+                  <Link className="p-4 block" href={`/invoices/${result.id}`}>
+                    mrafey10@gmail.com
+                  </Link>
+                </TableCell>
+                <TableCell className="text-center p-0">
+                  <Link className="p-4 block" href={`/invoices/${result.id}`}>
+                    <Badge className="rounded-full">{result.status}</Badge>
+                  </Link>
+                </TableCell>
+                <TableCell className="text-right p-0">
+                  <Link
+                    href={`/invoices/${result.id}`}
+                    className="font-semibold p-4 block"
+                  >
+                    ${result.value / 100}
+                  </Link>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </main>
